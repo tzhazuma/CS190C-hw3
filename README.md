@@ -304,6 +304,7 @@ bash scripts/finalize_submission.sh --suite configs/suites/h20_single_recommende
 ```
 
 This also updates the repository root `README.md` final results section by default.
+If you run it on the server, `Hardware used` is also filled from the server's real `nvidia-smi` output.
 
 If you only want to update the repository root `README.md` using a known best config:
 

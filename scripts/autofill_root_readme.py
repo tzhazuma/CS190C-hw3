@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -39,7 +41,7 @@ def _load_best_context(config_path: Path) -> dict[str, str]:
     metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
     accuracy = float(metrics["accuracy"])
     accuracy_percent = f"{accuracy * 100:.2f}% ({metrics['correct']}/{metrics['total']})"
-    hardware = "${GPU info from submission/final_report.md}" if False else "See submission/final_report.md"
+    hardware = os.getenv("SUBMISSION_HARDWARE_USED", _query_hardware_used())
 
     return {
         "best_config": str(config_path.relative_to(ROOT)),
@@ -55,6 +57,45 @@ def _load_best_context(config_path: Path) -> dict[str, str]:
         "learning_rate": str(config.training.learning_rate),
         "hardware": hardware,
     }
+
+
+def _query_hardware_used() -> str:
+    try:
+        gpu_output = subprocess.check_output(
+            [
+                "nvidia-smi",
+                "--query-gpu=name,memory.total",
+                "--format=csv,noheader",
+            ],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except Exception:
+        gpu_output = ""
+
+    try:
+        smi_output = subprocess.check_output(["nvidia-smi"], stderr=subprocess.DEVNULL, text=True)
+    except Exception:
+        smi_output = ""
+
+    cuda_version = "unknown"
+    for line in smi_output.splitlines():
+        if "CUDA Version:" in line:
+            cuda_version = line.split("CUDA Version:", maxsplit=1)[1].split()[0]
+            break
+
+    if gpu_output:
+        rows = [line.strip() for line in gpu_output.splitlines() if line.strip()]
+        names = [row.split(",")[0].strip() for row in rows]
+        memories = [row.split(",", maxsplit=1)[1].strip() for row in rows if "," in row]
+        if len(set(names)) == 1:
+            gpu_text = f"{len(rows)} x {names[0]}"
+        else:
+            gpu_text = "; ".join(rows)
+        memory_text = ", ".join(memories) if memories else "unknown"
+        return f"{gpu_text} (VRAM: {memory_text}), CUDA {cuda_version}"
+
+    return "unknown"
 
 
 def _replace_final_results_section(readme_text: str, values: dict[str, str]) -> str:

@@ -102,6 +102,7 @@ These commands:
 - summarize all completed experiments
 - automatically select the best run by accuracy
 - update the repository root `README.md` final results section
+- fill the root README `Hardware used` field from the server hardware
 - generate autofilled `submission/README.md` and `submission/final_report.md`
 - copy the best `results.jsonl`
 - build `submission/CS190C-hw3-submission.zip`
