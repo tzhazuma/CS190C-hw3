@@ -5,13 +5,18 @@ import random
 from pathlib import Path
 from typing import Any, Iterable
 
-import torch
+try:
+    import torch
+except ImportError:  # pragma: no cover - optional for non-training utilities
+    torch = None
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 def set_global_seed(seed: int) -> None:
+    if torch is None:
+        raise RuntimeError("torch is required for training utilities but is not installed.")
     random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
@@ -54,6 +59,8 @@ def write_jsonl(path: str | Path, rows: Iterable[dict[str, Any]]) -> None:
 
 
 def resolve_torch_dtype(dtype_name: str | None) -> torch.dtype | None:
+    if torch is None:
+        raise RuntimeError("torch is required to resolve torch dtypes but is not installed.")
     if dtype_name is None:
         return None
     name = dtype_name.lower()

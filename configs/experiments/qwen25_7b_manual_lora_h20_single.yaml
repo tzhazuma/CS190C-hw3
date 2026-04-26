@@ -1,0 +1,92 @@
+experiment_name: qwen25_7b_manual_lora_h20_single
+seed: 42
+
+model:
+  name_or_path: Qwen/Qwen2.5-7B
+  tokenizer_name: Qwen/Qwen2.5-7B
+  trust_remote_code: true
+  use_fast_tokenizer: true
+  torch_dtype: bfloat16
+  max_length: 1024
+
+quantization:
+  enabled: false
+  load_in_4bit: false
+  load_in_8bit: false
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_compute_dtype: bfloat16
+  bnb_4bit_use_double_quant: true
+
+data:
+  dataset_name: openai/gsm8k
+  dataset_config_name: main
+  train_split: train
+  validation_file: gsm8k_val.jsonl
+  max_train_samples: null
+  max_eval_samples: null
+  num_proc: 1
+  overwrite_cache: false
+  append_eos_token: true
+  use_chat_template: false
+  system_prompt: "You are a careful math tutor. Solve the problem step by step. Always finish with a final line in the form `#### <answer>`."
+  answer_prefix: "Answer:"
+
+adapter:
+  enabled: true
+  type: manual_lora
+  freeze_base_model: true
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  rank: 32
+  alpha: 64
+  dropout: 0.05
+  bias: none
+  modules_to_save: []
+
+training:
+  output_dir: outputs/qwen25_7b_manual_lora_h20_single
+  overwrite_output_dir: true
+  num_train_epochs: 3.0
+  max_steps: -1
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 0.00015
+  weight_decay: 0.0
+  warmup_ratio: 0.03
+  lr_scheduler_type: cosine
+  logging_steps: 10
+  logging_strategy: steps
+  save_strategy: no
+  save_steps: 200
+  save_total_limit: 2
+  bf16: true
+  fp16: false
+  gradient_checkpointing: true
+  gradient_checkpointing_use_reentrant: false
+  optim: adamw_torch
+  max_grad_norm: 1.0
+  dataloader_num_workers: 0
+  remove_unused_columns: false
+  ddp_find_unused_parameters: false
+  report_to: []
+  resume_from_checkpoint: null
+
+generation:
+  max_new_tokens: 320
+  do_sample: false
+  temperature: 0.0
+  top_p: 1.0
+  num_beams: 1
+  repetition_penalty: 1.0
+
+evaluation:
+  batch_size: 2
+  results_path: null
+  metrics_path: null

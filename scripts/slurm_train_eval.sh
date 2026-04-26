@@ -11,6 +11,6 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG_PATH="${1:-${ROOT_DIR}/configs/experiments/qwen25_7b_manual_lora.yaml}"
+CONFIG_PATH="${1:-${ROOT_DIR}/configs/experiments/qwen25_7b_manual_lora_h20_single.yaml}"
 
 bash "${ROOT_DIR}/scripts/run_train_eval.sh" "${CONFIG_PATH}"

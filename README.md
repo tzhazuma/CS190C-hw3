@@ -8,6 +8,7 @@ It includes:
 - optional 4-bit QLoRA-style loading through `bitsandbytes`
 - multi-model experiment configs, including `Qwen/Qwen2.5-7B` and `Qwen/Qwen3.5-4B-Base`
 - training, evaluation, and server-friendly shell scripts
+- automatic experiment summary generation in JSON / CSV / Markdown
 - a report template for the required write-up
 
 ## Assignment Mapping
@@ -38,6 +39,7 @@ scripts/
   setup_server.sh     # create venv and install deps
   run_train_eval.sh   # train + evaluate one config
   run_multi_experiments.sh
+  summarize_results.py
   slurm_train_eval.sh
 src/hw3/
   manual_lora.py      # hand-written LoRA injection
@@ -75,10 +77,17 @@ TORCH_INSTALL_CMD='python -m pip install torch --index-url https://download.pyto
 
 ## Single Experiment Run
 
-Default manual LoRA run on `Qwen/Qwen2.5-7B`:
+Default recommended run on H20 is the stronger manual LoRA config:
 
 ```bash
-bash scripts/run_train_eval.sh configs/experiments/qwen25_7b_manual_lora.yaml
+bash scripts/run_train_eval.sh configs/experiments/qwen25_7b_manual_lora_h20_single.yaml
+```
+
+Shortcut wrappers:
+
+```bash
+bash scripts/run_h20_best_single.sh
+bash scripts/run_h20_best_dual.sh
 ```
 
 Direct Python usage:
@@ -107,6 +116,15 @@ Run the provided suite:
 ```bash
 bash scripts/run_multi_experiments.sh configs/suites/multi_model_experiments.yaml
 ```
+
+Recommended H20 suites:
+
+```bash
+NUM_GPUS=1 bash scripts/run_multi_experiments.sh configs/suites/h20_single_recommended.yaml
+NUM_GPUS=2 MASTER_PORT=29501 bash scripts/run_multi_experiments.sh configs/suites/h20_dual_recommended.yaml
+```
+
+These suite runs automatically generate a summary report under `reports/`.
 
 Current suite includes:
 - `Qwen/Qwen2.5-7B` + manual LoRA
@@ -146,6 +164,49 @@ Key options:
 
 Key options:
 - `adapter.type: peft_lora`
+
+## Recommended Default Configs
+
+For your H20 server, I recommend these defaults first:
+
+### Best default for the assignment
+- single GPU: `configs/experiments/qwen25_7b_manual_lora_h20_single.yaml`
+- dual GPU: `configs/experiments/qwen25_7b_manual_lora_h20_dual.yaml`
+
+Reason:
+- exact manual LoRA path required by the assignment
+- H20 can support full bf16 base model loading for 7B
+- fewer moving parts than QLoRA, so easier to stabilize and reproduce
+
+### Best throughput alternative
+- single GPU: `configs/experiments/qwen25_7b_manual_qlora_h20_single.yaml`
+- dual GPU: `configs/experiments/qwen25_7b_manual_qlora_h20_dual.yaml`
+
+Reason:
+- larger effective batch under the same memory budget
+- useful if you want to compare speed / accuracy tradeoffs
+
+## H20 Single vs Dual GPU
+
+`run_train_eval.sh` supports both modes.
+
+Single GPU:
+
+```bash
+NUM_GPUS=1 bash scripts/run_train_eval.sh configs/experiments/qwen25_7b_manual_lora_h20_single.yaml
+```
+
+Dual GPU:
+
+```bash
+NUM_GPUS=2 MASTER_PORT=29501 bash scripts/run_train_eval.sh configs/experiments/qwen25_7b_manual_lora_h20_dual.yaml
+```
+
+Notes:
+- only the training stage uses DDP when `NUM_GPUS>1`
+- evaluation stays single-process for simpler result generation
+- use a different `MASTER_PORT` if another distributed job is already running
+- dual-GPU configs reduce `gradient_accumulation_steps` so two H20s provide real throughput gains
 
 ## Manual LoRA Implementation Notes
 
@@ -198,13 +259,35 @@ Answer parsing is implemented in `src/hw3/parsing.py` and supports:
 git clone https://github.com/tzhazuma/CS190C-hw3.git
 cd CS190C-hw3
 bash scripts/setup_server.sh
-bash scripts/run_train_eval.sh configs/experiments/qwen25_7b_manual_lora.yaml
+bash scripts/run_train_eval.sh configs/experiments/qwen25_7b_manual_lora_h20_single.yaml
 ```
+
+For H20-specific instructions, see `docs/h20_operations.md`.
+
+## Experiment Summaries
+
+Summarize one config:
+
+```bash
+python scripts/summarize_results.py --config configs/experiments/qwen25_7b_manual_lora_h20_single.yaml
+```
+
+Summarize a full suite:
+
+```bash
+python scripts/summarize_results.py --suite configs/suites/h20_single_recommended.yaml
+```
+
+Outputs are written to `reports/` in three formats:
+- Markdown for quick comparison
+- CSV for spreadsheet analysis
+- JSON for programmatic use
 
 ### SLURM example
 
 ```bash
-sbatch scripts/slurm_train_eval.sh configs/experiments/qwen25_7b_manual_lora.yaml
+sbatch scripts/slurm_train_eval.sh configs/experiments/qwen25_7b_manual_lora_h20_single.yaml
+sbatch scripts/slurm_train_eval_dual.sh configs/experiments/qwen25_7b_manual_lora_h20_dual.yaml
 ```
 
 ## Suggested Training Notes
@@ -221,6 +304,11 @@ For a 24GB to 48GB GPU, the most practical starting points are:
 - `Qwen/Qwen2.5-7B` with manual QLoRA
 - `Qwen/Qwen2.5-7B` with PEFT QLoRA
 - `Qwen/Qwen3.5-4B-Base` with manual LoRA for faster iteration
+
+On your H20 specifically, the first thing to try should be:
+- `qwen25_7b_manual_lora_h20_single`
+- then `qwen25_7b_manual_lora_h20_dual`
+- then the corresponding manual QLoRA configs for throughput comparison
 
 ## Final Results Section
 
@@ -255,3 +343,4 @@ Fill this section after running your best experiment.
 ## Report Template
 
 Use `docs/report_template.md` or `reports/final_report_template.md` for your final write-up.
+For the full H20 runbook, see `docs/h20_operations.md`.

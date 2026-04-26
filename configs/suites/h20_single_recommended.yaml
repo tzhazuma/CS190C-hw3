@@ -1,0 +1,12 @@
+experiments:
+  - config: ../experiments/qwen25_7b_manual_lora_h20_single.yaml
+  - config: ../experiments/qwen25_7b_manual_qlora_h20_single.yaml
+  - config: ../experiments/qwen25_7b_peft_qlora.yaml
+    overrides:
+      - experiment_name=qwen25_7b_peft_qlora_h20_single
+      - model.max_length=1024
+      - training.output_dir="outputs/qwen25_7b_peft_qlora_h20_single"
+      - training.num_train_epochs=3.0
+      - training.per_device_train_batch_size=8
+      - training.gradient_accumulation_steps=8
+      - generation.max_new_tokens=320
