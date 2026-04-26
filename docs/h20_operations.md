@@ -76,6 +76,35 @@ Two GPUs:
 NUM_GPUS=2 MASTER_PORT=29501 bash scripts/run_multi_experiments.sh configs/suites/h20_dual_recommended.yaml
 ```
 
+## One-Command Submission Workflow
+
+Single GPU:
+
+```bash
+STUDENT_NAME="Your Name" \
+STUDENT_ID="12345678" \
+COURSE_NAME="CS190C" \
+bash scripts/run_h20_submission_single.sh
+```
+
+Two GPUs:
+
+```bash
+STUDENT_NAME="Your Name" \
+STUDENT_ID="12345678" \
+COURSE_NAME="CS190C" \
+MASTER_PORT=29501 \
+bash scripts/run_h20_submission_dual.sh
+```
+
+These commands:
+- run the recommended experiment suite
+- summarize all completed experiments
+- automatically select the best run by accuracy
+- generate autofilled `submission/README.md` and `submission/final_report.md`
+- copy the best `results.jsonl`
+- build `submission/CS190C-hw3-submission.zip`
+
 ## Result Artifacts
 
 Each experiment writes to its own `outputs/<experiment_name>/` directory.

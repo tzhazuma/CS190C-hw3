@@ -29,3 +29,7 @@ python "${ROOT_DIR}/scripts/run_suite.py" \
   --master-port-base "${MASTER_PORT}"
 
 python "${ROOT_DIR}/scripts/summarize_results.py" --suite "${SUITE_PATH}"
+
+if [ "${SKIP_FINALIZE:-0}" != "1" ]; then
+  python "${ROOT_DIR}/scripts/finalize_submission.py" --suite "${SUITE_PATH}"
+fi

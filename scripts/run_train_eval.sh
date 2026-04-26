@@ -39,3 +39,8 @@ python "${ROOT_DIR}/scripts/evaluate.py" --config "${CONFIG_PATH}"
 
 echo "[run] summarizing config=${CONFIG_PATH}"
 python "${ROOT_DIR}/scripts/summarize_results.py" --config "${CONFIG_PATH}"
+
+if [ "${AUTO_FINALIZE:-0}" = "1" ]; then
+  echo "[run] finalizing submission artifacts for config=${CONFIG_PATH}"
+  python "${ROOT_DIR}/scripts/finalize_submission.py" --config "${CONFIG_PATH}"
+fi

@@ -40,6 +40,7 @@ scripts/
   run_train_eval.sh   # train + evaluate one config
   run_multi_experiments.sh
   summarize_results.py
+  finalize_submission.py
   slurm_train_eval.sh
 src/hw3/
   manual_lora.py      # hand-written LoRA injection
@@ -88,6 +89,8 @@ Shortcut wrappers:
 ```bash
 bash scripts/run_h20_best_single.sh
 bash scripts/run_h20_best_dual.sh
+bash scripts/run_h20_submission_single.sh
+bash scripts/run_h20_submission_dual.sh
 ```
 
 Direct Python usage:
@@ -125,6 +128,7 @@ NUM_GPUS=2 MASTER_PORT=29501 bash scripts/run_multi_experiments.sh configs/suite
 ```
 
 These suite runs automatically generate a summary report under `reports/`.
+By default they also create a submission package under `submission/`.
 
 Current suite includes:
 - `Qwen/Qwen2.5-7B` + manual LoRA
@@ -283,6 +287,81 @@ Outputs are written to `reports/` in three formats:
 - CSV for spreadsheet analysis
 - JSON for programmatic use
 
+## Automatic Final Submission Package
+
+After your experiments finish, you can automatically:
+- select the best run by validation accuracy
+- copy that run's `results.jsonl`
+- autofill a submission `README.md`
+- autofill a final report markdown file
+- generate experiment summary files
+- create a final zip for submission
+
+Manual command for one suite:
+
+```bash
+bash scripts/finalize_submission.sh --suite configs/suites/h20_single_recommended.yaml
+```
+
+Manual command for a single config:
+
+```bash
+bash scripts/finalize_submission.sh --config configs/experiments/qwen25_7b_manual_lora_h20_single.yaml
+```
+
+Pass student metadata either as flags or environment variables:
+
+```bash
+STUDENT_NAME="Your Name" \
+STUDENT_ID="12345678" \
+COURSE_NAME="CS190C" \
+bash scripts/finalize_submission.sh --suite configs/suites/h20_single_recommended.yaml
+```
+
+One-command end-to-end recommended flow on H20:
+
+```bash
+STUDENT_NAME="Your Name" \
+STUDENT_ID="12345678" \
+COURSE_NAME="CS190C" \
+bash scripts/run_h20_submission_single.sh
+```
+
+Dual GPU end-to-end:
+
+```bash
+STUDENT_NAME="Your Name" \
+STUDENT_ID="12345678" \
+COURSE_NAME="CS190C" \
+MASTER_PORT=29501 \
+bash scripts/run_h20_submission_dual.sh
+```
+
+Generated directory:
+
+```text
+submission/
+  README.md
+  final_report.md
+  results.jsonl
+  experiment_summary.md
+  experiment_summary.csv
+  experiment_summary.json
+  submission_manifest.json
+  CS190C-hw3-submission.zip
+  best_run/
+    metrics.json
+    training_metrics.json
+    config.resolved.yaml
+```
+
+Default selection rule:
+- choose the completed run with the highest validation accuracy
+- ties are broken deterministically by experiment name
+
+If you want finalization to happen automatically after a suite run, that is already the default behavior of `scripts/run_multi_experiments.sh`.
+Set `SKIP_FINALIZE=1` to disable it.
+
 ### SLURM example
 
 ```bash
@@ -337,6 +416,7 @@ Fill this section after running your best experiment.
 - [x] quantization / QLoRA options
 - [x] server scripts
 - [x] report template
+- [x] automatic best-run selection and submission packaging
 - [ ] final best `results.jsonl`
 - [ ] final measured accuracy
 
@@ -344,3 +424,4 @@ Fill this section after running your best experiment.
 
 Use `docs/report_template.md` or `reports/final_report_template.md` for your final write-up.
 For the full H20 runbook, see `docs/h20_operations.md`.
+Autofilled submission templates live under `docs/templates/`.
