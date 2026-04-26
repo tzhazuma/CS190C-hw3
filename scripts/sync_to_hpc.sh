@@ -7,7 +7,16 @@ SSH_PORT="${SSH_PORT:-30911}"
 REMOTE_DIR="${REMOTE_DIR:-/2022533131/CS190C-hw3}"
 
 echo "[sync] target=${SSH_TARGET}:${REMOTE_DIR}"
-ssh -o StrictHostKeyChecking=no -p "${SSH_PORT}" "${SSH_TARGET}" "rm -rf \"${REMOTE_DIR}\" && mkdir -p \"${REMOTE_DIR}\""
+ssh -o StrictHostKeyChecking=no -p "${SSH_PORT}" "${SSH_TARGET}" "python3 - <<'PY'
+import os
+import shutil
+
+path = os.path.abspath('${REMOTE_DIR}')
+if os.path.exists(path):
+    shutil.rmtree(path)
+os.makedirs(path, exist_ok=True)
+print(path)
+PY"
 
 COPYFILE_DISABLE=1 tar \
   --exclude='.git' \
