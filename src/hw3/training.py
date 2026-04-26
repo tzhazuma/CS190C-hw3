@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 from typing import Any
 
@@ -17,36 +18,39 @@ def _build_training_arguments(config: ExperimentConfig) -> TrainingArguments:
     if config.adapter.type == "manual_lora" and save_strategy != "no":
         save_strategy = "no"
 
-    return TrainingArguments(
-        output_dir=config.training.output_dir,
-        overwrite_output_dir=config.training.overwrite_output_dir,
-        num_train_epochs=config.training.num_train_epochs,
-        max_steps=config.training.max_steps,
-        per_device_train_batch_size=config.training.per_device_train_batch_size,
-        per_device_eval_batch_size=config.training.per_device_eval_batch_size,
-        gradient_accumulation_steps=config.training.gradient_accumulation_steps,
-        learning_rate=config.training.learning_rate,
-        weight_decay=config.training.weight_decay,
-        warmup_ratio=config.training.warmup_ratio,
-        lr_scheduler_type=config.training.lr_scheduler_type,
-        logging_steps=config.training.logging_steps,
-        logging_strategy=config.training.logging_strategy,
-        save_strategy=save_strategy,
-        save_steps=config.training.save_steps,
-        save_total_limit=config.training.save_total_limit,
-        bf16=config.training.bf16,
-        fp16=config.training.fp16,
-        gradient_checkpointing=config.training.gradient_checkpointing,
-        gradient_checkpointing_kwargs={"use_reentrant": config.training.gradient_checkpointing_use_reentrant},
-        optim=config.training.optim,
-        max_grad_norm=config.training.max_grad_norm,
-        dataloader_num_workers=config.training.dataloader_num_workers,
-        remove_unused_columns=config.training.remove_unused_columns,
-        ddp_find_unused_parameters=config.training.ddp_find_unused_parameters,
-        report_to=config.training.report_to,
-        seed=config.seed,
-        save_safetensors=True,
-    )
+    argument_values = {
+        "output_dir": config.training.output_dir,
+        "overwrite_output_dir": config.training.overwrite_output_dir,
+        "num_train_epochs": config.training.num_train_epochs,
+        "max_steps": config.training.max_steps,
+        "per_device_train_batch_size": config.training.per_device_train_batch_size,
+        "per_device_eval_batch_size": config.training.per_device_eval_batch_size,
+        "gradient_accumulation_steps": config.training.gradient_accumulation_steps,
+        "learning_rate": config.training.learning_rate,
+        "weight_decay": config.training.weight_decay,
+        "warmup_ratio": config.training.warmup_ratio,
+        "lr_scheduler_type": config.training.lr_scheduler_type,
+        "logging_steps": config.training.logging_steps,
+        "logging_strategy": config.training.logging_strategy,
+        "save_strategy": save_strategy,
+        "save_steps": config.training.save_steps,
+        "save_total_limit": config.training.save_total_limit,
+        "bf16": config.training.bf16,
+        "fp16": config.training.fp16,
+        "gradient_checkpointing": config.training.gradient_checkpointing,
+        "gradient_checkpointing_kwargs": {"use_reentrant": config.training.gradient_checkpointing_use_reentrant},
+        "optim": config.training.optim,
+        "max_grad_norm": config.training.max_grad_norm,
+        "dataloader_num_workers": config.training.dataloader_num_workers,
+        "remove_unused_columns": config.training.remove_unused_columns,
+        "ddp_find_unused_parameters": config.training.ddp_find_unused_parameters,
+        "report_to": config.training.report_to,
+        "seed": config.seed,
+        "save_safetensors": True,
+    }
+    supported_parameters = inspect.signature(TrainingArguments.__init__).parameters
+    filtered_values = {key: value for key, value in argument_values.items() if key in supported_parameters}
+    return TrainingArguments(**filtered_values)
 
 
 def train_experiment(config: ExperimentConfig) -> dict[str, Any]:
