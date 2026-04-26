@@ -38,6 +38,12 @@ TORCH_INSTALL_CMD='python -m pip install torch --index-url https://download.pyto
   bash scripts/setup_server.sh
 ```
 
+For the current HPC host, a confirmed working Python is:
+
+```bash
+/opt/conda/bin/python3.11
+```
+
 ## Single-GPU Run
 
 ```bash
@@ -106,6 +112,27 @@ These commands:
 - generate autofilled `submission/README.md` and `submission/final_report.md`
 - copy the best `results.jsonl`
 - build `submission/CS190C-hw3-submission.zip`
+
+## Sync And Remote Tmux Helpers
+
+Upload the repository to the server target directory:
+
+```bash
+bash scripts/sync_to_hpc.sh
+```
+
+Start a detached remote run:
+
+```bash
+MODE=single bash scripts/start_hpc_tmux.sh
+MODE=dual MASTER_PORT=29501 bash scripts/start_hpc_tmux.sh
+```
+
+Defaults used by the helper:
+- SSH target: `root@10.15.171.204`
+- SSH port: `30911`
+- remote dir: `/2022533131/CS190C-hw3`
+- remote python: `/opt/conda/bin/python3.11`
 
 If you already know which run is best and only want to refresh the root README:
 

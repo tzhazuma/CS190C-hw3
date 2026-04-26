@@ -91,6 +91,8 @@ bash scripts/run_h20_best_single.sh
 bash scripts/run_h20_best_dual.sh
 bash scripts/run_h20_submission_single.sh
 bash scripts/run_h20_submission_dual.sh
+bash scripts/sync_to_hpc.sh
+MODE=single bash scripts/start_hpc_tmux.sh
 ```
 
 Direct Python usage:
@@ -268,6 +270,8 @@ bash scripts/run_train_eval.sh configs/experiments/qwen25_7b_manual_lora_h20_sin
 
 For H20-specific instructions, see `docs/h20_operations.md`.
 
+For the current HPC server we detected a working Python at `/opt/conda/bin/python3.11`.
+
 ## Experiment Summaries
 
 Summarize one config:
@@ -380,6 +384,27 @@ STUDENT_NAME="Other Name" STUDENT_ID="12345678" bash scripts/finalize_submission
 
 If you want finalization to happen automatically after a suite run, that is already the default behavior of `scripts/run_multi_experiments.sh`.
 Set `SKIP_FINALIZE=1` to disable it.
+
+## HPC Upload And Remote Tmux Run
+
+Sync the repo to `/2022533131/CS190C-hw3` on the HPC server:
+
+```bash
+bash scripts/sync_to_hpc.sh
+```
+
+Start a detached `tmux` run on the HPC server:
+
+```bash
+MODE=single bash scripts/start_hpc_tmux.sh
+MODE=dual MASTER_PORT=29501 bash scripts/start_hpc_tmux.sh
+```
+
+The helper uses:
+- SSH target: `root@10.15.171.204`
+- port: `30911`
+- remote dir: `/2022533131/CS190C-hw3`
+- remote python: `/opt/conda/bin/python3.11`
 
 ### SLURM example
 

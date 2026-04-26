@@ -3,6 +3,8 @@ __pycache__/
 *.so
 .DS_Store
 **/.DS_Store
+._*
+**/._*
 .venv/
 .env
 .pytest_cache/
