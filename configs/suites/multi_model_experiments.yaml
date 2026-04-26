@@ -1,0 +1,9 @@
+experiments:
+  - config: ../experiments/qwen25_7b_manual_lora.yaml
+  - config: ../experiments/qwen25_7b_manual_qlora.yaml
+  - config: ../experiments/qwen25_7b_peft_lora.yaml
+  - config: ../experiments/qwen25_7b_peft_qlora.yaml
+  - config: ../experiments/qwen35_4b_manual_lora.yaml
+  - config: ../experiments/qwen35_4b_manual_qlora.yaml
+  - config: ../experiments/qwen35_4b_peft_lora.yaml
+  - config: ../experiments/qwen35_4b_peft_qlora.yaml
