@@ -63,13 +63,19 @@ def train_experiment(config: ExperimentConfig) -> dict[str, Any]:
     data_collator = SupervisedDataCollator(tokenizer)
     training_args = _build_training_arguments(config)
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        tokenizer=tokenizer,
-        train_dataset=train_dataset,
-        data_collator=data_collator,
-    )
+    trainer_kwargs: dict[str, Any] = {
+        "model": model,
+        "args": training_args,
+        "train_dataset": train_dataset,
+        "data_collator": data_collator,
+    }
+    trainer_signature = inspect.signature(Trainer.__init__).parameters
+    if "tokenizer" in trainer_signature:
+        trainer_kwargs["tokenizer"] = tokenizer
+    elif "processing_class" in trainer_signature:
+        trainer_kwargs["processing_class"] = tokenizer
+
+    trainer = Trainer(**trainer_kwargs)
     train_result = trainer.train(resume_from_checkpoint=config.training.resume_from_checkpoint)
     trainer.save_state()
 
