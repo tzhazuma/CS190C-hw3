@@ -25,6 +25,10 @@ from hw3.config import ExperimentConfig, load_experiment_config
 from hw3.utils import ensure_dir, ensure_parent_dir, resolve_path
 
 
+DEFAULT_STUDENT_NAME = "tangzhihao"
+DEFAULT_STUDENT_ID = "2022533131"
+
+
 def _resolve_config_path(path_text: str) -> Path:
     config_path = Path(path_text)
     if not config_path.is_absolute():
@@ -348,10 +352,21 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--override", action="append", default=[], help="Optional overrides applied to direct --config arguments.")
     parser.add_argument("--submission-dir", default=os.getenv("SUBMISSION_DIR", "submission"), help="Directory for generated submission artifacts.")
     parser.add_argument("--zip-name", default=os.getenv("SUBMISSION_ZIP_NAME", "CS190C-hw3-submission.zip"), help="Submission zip filename.")
-    parser.add_argument("--student-name", default=os.getenv("STUDENT_NAME", ""), help="Student name for autofilled templates.")
-    parser.add_argument("--student-id", default=os.getenv("STUDENT_ID", ""), help="Student ID for autofilled templates.")
+    parser.add_argument("--student-name", default=os.getenv("STUDENT_NAME", DEFAULT_STUDENT_NAME), help="Student name for autofilled templates.")
+    parser.add_argument("--student-id", default=os.getenv("STUDENT_ID", DEFAULT_STUDENT_ID), help="Student ID for autofilled templates.")
     parser.add_argument("--course-name", default=os.getenv("COURSE_NAME", "CS190C"), help="Course name for autofilled templates.")
+    parser.add_argument("--skip-root-readme", action="store_true", help="Do not update the repository root README final results section.")
     return parser.parse_args()
+
+
+def _autofill_root_readme(best_record: dict[str, Any]) -> None:
+    command = [
+        sys.executable,
+        str(ROOT / "scripts" / "autofill_root_readme.py"),
+        "--config",
+        str(best_record["config_path"]),
+    ]
+    subprocess.run(command, check=True, cwd=ROOT)
 
 
 def main() -> None:
@@ -399,6 +414,9 @@ def main() -> None:
         "zip_name": args.zip_name,
     }
     _write_json(submission_dir / "submission_manifest.json", manifest)
+
+    if not args.skip_root_readme:
+        _autofill_root_readme(best_record)
 
     zip_path = submission_dir / args.zip_name
     _write_zip(zip_path, submission_dir, best_record, copied_artifacts)

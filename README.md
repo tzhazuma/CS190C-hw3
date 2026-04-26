@@ -303,6 +303,14 @@ Manual command for one suite:
 bash scripts/finalize_submission.sh --suite configs/suites/h20_single_recommended.yaml
 ```
 
+This also updates the repository root `README.md` final results section by default.
+
+If you only want to update the repository root `README.md` using a known best config:
+
+```bash
+python scripts/autofill_root_readme.py --config configs/experiments/qwen25_7b_manual_lora_h20_single.yaml
+```
+
 Manual command for a single config:
 
 ```bash
@@ -358,6 +366,16 @@ submission/
 Default selection rule:
 - choose the completed run with the highest validation accuracy
 - ties are broken deterministically by experiment name
+
+Default autofill identity:
+- Student name: `tangzhihao`
+- Student ID: `2022533131`
+
+Override if needed:
+
+```bash
+STUDENT_NAME="Other Name" STUDENT_ID="12345678" bash scripts/finalize_submission.sh --suite configs/suites/h20_single_recommended.yaml
+```
 
 If you want finalization to happen automatically after a suite run, that is already the default behavior of `scripts/run_multi_experiments.sh`.
 Set `SKIP_FINALIZE=1` to disable it.

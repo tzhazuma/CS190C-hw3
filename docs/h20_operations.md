@@ -101,9 +101,16 @@ These commands:
 - run the recommended experiment suite
 - summarize all completed experiments
 - automatically select the best run by accuracy
+- update the repository root `README.md` final results section
 - generate autofilled `submission/README.md` and `submission/final_report.md`
 - copy the best `results.jsonl`
 - build `submission/CS190C-hw3-submission.zip`
+
+If you already know which run is best and only want to refresh the root README:
+
+```bash
+python scripts/autofill_root_readme.py --config configs/experiments/qwen25_7b_manual_lora_h20_single.yaml
+```
 
 ## Result Artifacts
 
