@@ -18,8 +18,9 @@ fi
 
 REMOTE_BOOTSTRAP_PATH="${REMOTE_DIR}/logs/${SESSION_NAME}_bootstrap.sh"
 REMOTE_LOG_PATH="${REMOTE_DIR}/logs/${SESSION_NAME}.log"
+LOCAL_BOOTSTRAP_PATH="/tmp/${SESSION_NAME}_bootstrap.sh"
 
-ssh -o StrictHostKeyChecking=no -p "${SSH_PORT}" "${SSH_TARGET}" "mkdir -p '${REMOTE_DIR}/logs' && cat > '${REMOTE_BOOTSTRAP_PATH}' <<'EOF'
+cat > "${LOCAL_BOOTSTRAP_PATH}" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
 cd '${REMOTE_DIR}'
@@ -33,9 +34,10 @@ export MASTER_PORT='${MASTER_PORT}'
 bash scripts/setup_server.sh
 ${RUN_SCRIPT}
 EOF
-chmod +x '${REMOTE_BOOTSTRAP_PATH}'
-tmux kill-session -t '${SESSION_NAME}' 2>/dev/null || true
-tmux new-session -d -s '${SESSION_NAME}' "bash '${REMOTE_BOOTSTRAP_PATH}' > '${REMOTE_LOG_PATH}' 2>&1"
-tmux ls
-echo '[tmux] bootstrap: ${REMOTE_BOOTSTRAP_PATH}'
-echo '[tmux] log: ${REMOTE_LOG_PATH}'"
+
+chmod +x "${LOCAL_BOOTSTRAP_PATH}"
+ssh -o StrictHostKeyChecking=no -p "${SSH_PORT}" "${SSH_TARGET}" "mkdir -p '${REMOTE_DIR}/logs'"
+scp -P "${SSH_PORT}" -o StrictHostKeyChecking=no "${LOCAL_BOOTSTRAP_PATH}" "${SSH_TARGET}:${REMOTE_BOOTSTRAP_PATH}"
+rm -f "${LOCAL_BOOTSTRAP_PATH}"
+
+ssh -o StrictHostKeyChecking=no -p "${SSH_PORT}" "${SSH_TARGET}" "chmod +x '${REMOTE_BOOTSTRAP_PATH}' && tmux kill-session -t '${SESSION_NAME}' 2>/dev/null || true && tmux new-session -d -s '${SESSION_NAME}' \"bash '${REMOTE_BOOTSTRAP_PATH}' > '${REMOTE_LOG_PATH}' 2>&1\" && tmux ls && printf '[tmux] bootstrap: %s\n[tmux] log: %s\n' '${REMOTE_BOOTSTRAP_PATH}' '${REMOTE_LOG_PATH}'"
